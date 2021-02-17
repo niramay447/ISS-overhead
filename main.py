@@ -1,7 +1,11 @@
 import requests
 import datetime
+import smtplib
 MY_LAT = 23.064740
 MY_LNG = 70.129860
+MY_EMAIL = example@email.com
+MY_PASSWORD = ExamplePassword
+
 
 def is_iss_overhead():
 
@@ -29,14 +33,24 @@ def is_night():
         "lng": MY_LNG,
         "formatted": 0,
     }
-response = requests.get("https://api.sunrise-sunset.org/json", params=parameters)
-response.raise_for_status()
-data = response.json()
-sunrise = int(data["results"]["sunrise"].split("T")[1].split(":")[0])
-sunset = int(data["results"]["sunset"].split("T")[1].split(":")[0])
+    response = requests.get("https://api.sunrise-sunset.org/json", params=parameters)
+    response.raise_for_status()
+    data = response.json()
+    sunrise = int(data["results"]["sunrise"].split("T")[1].split(":")[0])
+    sunset = int(data["results"]["sunset"].split("T")[1].split(":")[0])
 
-print(sunrise)
-print(sunset)
-time_now = datetime.now()
+    time_now = datetime.now().hour
 
-print(time_now)
+    if time_now >= sunset or time_now<= sunrise:
+        return True
+
+
+if is_iss_overhead() and is_night():
+    connection = smtplib.SMTP("smtp.gmail.com")
+    connection.starttls()
+    connection.login(MY_EMAIL,MY_PASSWORD)
+    connection.sendmail(
+        from_addr=MY_EMAIL,
+        to_addrs=MY_EMAIL,
+        msg="SUbject:Look Up \n\n The ISS is above you in the sky"
+    )
